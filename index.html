@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat Interativo - Halan Moisés</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Manutenção do CSS original, apenas com pequenos ajustes de UX */
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0; padding: 0; height: 100%; overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            background: #f5f5f5; display: flex;
+            justify-content: center; align-items: center;
+        }
+        .chat-container {
+            width: 100%; max-width: 450px; 
+            /* MELHORIA (CSS): Uso de 100dvh para melhor suporte em mobile */
+            height: 100dvh;
+            background: #fff; border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .chat-header {
+            background: #ff7b00; color: white; padding: 15px;
+            text-align: center; font-weight: 600; font-size: 18px;
+        }
+        .chat-body {
+            flex: 1; padding: 15px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 10px;
+            scroll-behavior: smooth;
+        }
+        .message {
+            max-width: 85%; padding: 10px 14px; border-radius: 18px;
+            line-height: 1.4; font-size: 15px; word-wrap: break-word;
+        }
+        .bot { background: #f0f0f0; align-self: flex-start; border-bottom-left-radius: 0; }
+        .user { background: #ff7b00; color: white; align-self: flex-end; border-bottom-right-radius: 0; }
+        .options-message {
+            display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
+        }
+        .option-btn {
+            flex: 1 1 45%; background: #ff7b00; color: white;
+            border: none; border-radius: 10px; padding: 10px 8px;
+            font-size: 13px; cursor: pointer; 
+            /* MELHORIA (CSS): Ajuste sutil na transição de clique */
+            transition: background 0.2s, transform 0.1s;
+            text-align: center;
+        }
+        .option-btn:hover { background: #e96f00; }
+        .option-btn:active { transform: scale(0.97); } /* Ajustado de 0.95 para 0.97 */
+        .end-btn { background: #d32f2f; }
+        .end-btn:hover { background: #b71c1c; }
+        .reset-btn { background: #007bff; } /* Adicionado para o botão Reset */
+        .reset-btn:hover { background: #0069d9; }
+        .input-section {
+            flex-shrink: 0; background: #fff; border-top: 1px solid #eee;
+            display: flex; flex-direction: column; align-items: center; padding: 10px;
+        }
+        .input-bar {
+            display: flex; align-items: center; width: 100%;
+        }
+        .input-bar input {
+            flex: 1; padding: 10px 12px; border-radius: 12px;
+            border: 1px solid #ddd; font-size: 14px; outline: none;
+        }
+        .send-btn {
+            margin-left: 8px; background: #ff7b00; border: none;
+            color: white; border-radius: 12px; padding: 10px 14px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
+        }
+        .send-btn:hover { background: #e96f00; }
+        .send-btn:active { transform: scale(0.95); }
+        .send-btn svg { width: 18px; height: 18px; fill: white; }
+        .footer {
+            font-size: 12px; color: #888; margin-top: 6px; text-align: center;
+        }
+        .typing { font-style: italic; color: #777; }
+        .fade-in { opacity: 0; animation: fadeIn 0.5s forwards; }
+        @keyframes fadeIn { to { opacity: 1; } }
+        a { color: #ff7b00; text-decoration: none; }
+        .user a { color: white; } /* Cor dos links dentro da bolha do usuário */
+    </style>
+</head>
+<body>
+    <div class="chat-container" role="main">
+        <div class="chat-header">Atendimento Halan Moisés</div>
+        <div class="chat-body" id="chatBody">
+            <div class="message bot fade-in">Olá! 👋 Sou o assistente do Halan Moisés. Qual é o seu nome?</div>
+        </div>
+
+        <div class="input-section">
+            <div class="input-bar">
+                <input type="text" id="userInput" placeholder="Digite seu nome..." aria-label="Campo de entrada de texto" />
+                <button class="send-btn" onclick="sendMessage()" aria-label="Enviar Mensagem">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="footer">Desenvolvido por <strong>Halan Moisés</strong></div>
+        </div>
+    </div>
+
+    <script>
+        const chatBody = document.getElementById('chatBody');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.querySelector('.send-btn');
+        let userName = '';
+        let chatActive = true;
+        let hasShownOptionsOnce = false;
+        let hasSelectedOption = false;
+
+        const allOptions = ['fotografia', 'design', 'video', 'web', 'redes'];
+        // REMOÇÃO DA MELHORIA: A lista de 'permanentOptions' foi removida para seguir a lógica original.
+        let remainingOptions = [...allOptions];
+
+        function addMessage(sender, text) {
+            const msg = document.createElement('div');
+            msg.classList.add('message', sender, 'fade-in');
+            msg.innerHTML = text;
+            chatBody.appendChild(msg);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+        
+        // MELHORIA (UX/Lógica): Função para habilitar/desabilitar o input
+        function toggleInput(state, placeholder = 'Digite uma mensagem...') {
+            userInput.disabled = !state;
+            sendButton.disabled = !state;
+            userInput.placeholder = state ? placeholder : 'Aguarde a resposta do assistente...';
+        }
+
+        function addOptionsMessage() {
+            const optionsContainer = document.createElement('div');
+            optionsContainer.classList.add('message', 'bot', 'fade-in');
+
+            let optionsHTML = '';
+            
+            // Lógica original: Usa apenas remainingOptions
+            if (remainingOptions.length > 0) {
+                optionsHTML += 'Escolha uma opção abaixo:';
+                optionsHTML += `<div class="options-message">`;
+                remainingOptions.forEach(option => {
+                    let icon = '';
+                    switch(option) {
+                        case 'fotografia': icon = '📸'; break;
+                        case 'design': icon = '🎨'; break;
+                        case 'video': icon = '🎬'; break;
+                        case 'web': icon = '💻'; break;
+                        case 'redes': icon = '🌐'; break;
+                    }
+                    // MELHORIA (A11Y): Adicionado aria-label no botão
+                    optionsHTML += `<button class="option-btn" onclick="selectOption('${option}')" aria-label="Opção ${option}">${icon} ${option.charAt(0).toUpperCase() + option.slice(1)}</button>`;
+                });
+
+                // 🔸 Só mostra o botão Encerrar depois da primeira seleção
+                if (hasSelectedOption) {
+                    // MELHORIA (A11Y): Adicionado aria-label no botão
+                    optionsHTML += `<button class="option-btn end-btn" onclick="endChat()" aria-label="Encerrar Conversa">Encerrar ChatBot</button>`;
+                }
+
+                optionsHTML += `</div>`;
+            } else {
+                // Opções ao final do fluxo
+                optionsHTML += `
+                    Todas as opções foram apresentadas.<br>O que deseja fazer agora?
+                    <div class="options-message">
+                        <button class="option-btn reset-btn" onclick="resetMenu()">🔄 Voltar ao Menu</button>
+                        <button class="option-btn end-btn" onclick="endChat()">Encerrar ChatBot</button>
+                    </div>
+                `;
+            }
+
+            optionsContainer.innerHTML = optionsHTML;
+            chatBody.appendChild(optionsContainer);
+            chatBody.scrollTop = chatBody.scrollHeight;
+            hasShownOptionsOnce = true;
+        }
+
+        function botTyping(text, delayPerChar = 10, callback = null) {
+            // MELHORIA (UX): Desabilita input enquanto digita
+            toggleInput(false);
+            
+            const typing = document.createElement('div');
+            typing.classList.add('message', 'bot', 'typing');
+            typing.textContent = 'Digitando...';
+            chatBody.appendChild(typing);
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            setTimeout(() => {
+                typing.remove();
+                addMessage('bot', text);
+                
+                // MELHORIA (UX): Habilita input após digitar
+                if (chatActive && userName) toggleInput(true, 'Digite uma mensagem...');
+                else if (chatActive) toggleInput(true, 'Digite seu nome...');
+
+                if (callback) callback();
+            }, text.length * delayPerChar);
+        }
+
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if (text === '' || !chatActive || userInput.disabled) return; // Verifica se o input está desabilitado
+
+            if (!userName) {
+                userName = text;
+                addMessage('user', userName);
+                userInput.value = '';
+                // MELHORIA (UX): Altera o placeholder após obter o nome
+                userInput.placeholder = 'Digite uma mensagem...'; 
+                botTyping(`Seja bem-vindo(a), ${userName}! Estou aqui para apresentar meus serviços.`, 10, () => {
+                    addOptionsMessage();
+                });
+                return;
+            }
+
+            addMessage('user', text);
+            userInput.value = '';
+            
+            // MELHORIA (Lógica): Resposta padrão para texto livre
+            botTyping(`Para demais dúvidas, ${userName}, entre em contato comigo via <a href="http://wa.me//5521986291990" target="_blank">WhatsApp</a>.`);
+        }
+
+        function selectOption(option) {
+            if (!chatActive) return;
+            hasSelectedOption = true; // 🔹 marca que já escolheu algo
+            addMessage('user', option.charAt(0).toUpperCase() + option.slice(1));
+
+            let response = '';
+            switch(option) {
+                case 'fotografia':
+                    response = `📸 Fotografia profissional: Realizo ensaios fotográficos para todos os estilos, valorizando sua imagem e momentos especiais. Mais detalhes no <a href="https://halanmoises.46graus.com/" target="_blank">site</a> ou fale comigo pelo <a href="http://wa.me//5521986291990" target="_blank">WhatsApp</a>.`;
+                    break;
+                case 'design':
+                    response = `🎨 Design Digital: Criação de artes visuais, identidade visual e material promocional para empresas e projetos. Mais informações no <a href="https://halanmoises.46graus.com/" target="_blank">site</a> ou pelo <a href="http://wa.me//5521986291990" target="_blank">WhatsApp</a>.`;
+                    break;
+                case 'video':
+                    response = `🎬 Videomaker: Produção de vídeos institucionais, promocionais e criativos com qualidade profissional. Confira no <a href="https://halanmoises.46graus.com/" target="_blank">site</a> ou entre em contato pelo <a href="http://wa.me//5521986291990" target="_blank">WhatsApp</a>.`;
+                    break;
+                case 'web':
+                    response = `💻 Desenvolvimento Web: Criação e manutenção de sites, landing pages e soluções digitais personalizadas. Saiba mais no <a href="https://halanmoises.46graus.com/" target="_blank">site</a> ou pelo <a href="http://wa.me//5521986291990" target="_blank">WhatsApp</a>.`;
+                    break;
+                case 'redes':
+                    response = `🌐 Minhas Redes Sociais:<br>
+                                 <a href="https://www.instagram.com/halanmoisesfotografia" target="_blank">Instagram</a><br>
+                                 <a href="https://www.tiktok.com/@halanmoises" target="_blank">TikTok</a><br>
+                                 <a href="http://wa.me//5521986291990" target="_blank">WhatsApp</a>`;
+                    break;
+            }
+
+            // Ação de remoção da opção selecionada (incluindo 'redes', como solicitado)
+            remainingOptions = remainingOptions.filter(opt => opt !== option);
+            
+
+            botTyping(response, 10, () => addOptionsMessage());
+        }
+
+        function resetMenu() {
+            remainingOptions = [...allOptions];
+            addMessage('user', '🔄 Voltar ao Menu');
+            botTyping('As opções foram restauradas. Escolha uma delas abaixo:', 10, () => addOptionsMessage());
+        }
+
+        function endChat() {
+            if (!chatActive) return;
+            addMessage('user', 'Encerrar ChatBot');
+            chatActive = false;
+            // MELHORIA (UX): Desabilita input ao encerrar
+            toggleInput(false, 'Chat encerrado. Recarregue a página para começar novamente.'); 
+
+            botTyping(`O chat foi encerrado. Até logo, ${userName}! 👋`, 10, () => {
+                // Ação de resetar o estado (seu código original usava um setTimeout para simular o encerramento)
+                setTimeout(() => {
+                    chatBody.innerHTML = '';
+                    userName = '';
+                    chatActive = true;
+                    hasShownOptionsOnce = false;
+                    hasSelectedOption = false;
+                    remainingOptions = [...allOptions];
+                    addMessage('bot', 'Olá! 👋 Sou o assistente do Halan Moisés. Qual é o seu nome?');
+                    // MELHORIA (UX): Restaura o input para o estado inicial
+                    toggleInput(true, 'Digite seu nome...'); 
+                }, 1500);
+            });
+        }
+
+        userInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter') sendMessage();
+        });
+        
+        // MELHORIA (UX): Inicia o input habilitado e no modo de digitar o nome
+        toggleInput(true, 'Digite seu nome...');
+    </script>
+</body>
+</html>
