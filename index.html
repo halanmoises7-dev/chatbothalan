@@ -6,7 +6,6 @@
     <title>Chat Interativo - Halan Moisés</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Manutenção do CSS original, apenas com pequenos ajustes de UX */
         * { box-sizing: border-box; }
         html, body {
             margin: 0; padding: 0; height: 100%; overflow: hidden;
@@ -16,7 +15,6 @@
         }
         .chat-container {
             width: 100%; max-width: 450px; 
-            /* MELHORIA (CSS): Uso de 100dvh para melhor suporte em mobile */
             height: 100dvh;
             background: #fff; border-radius: 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
@@ -44,15 +42,14 @@
             flex: 1 1 45%; background: #ff7b00; color: white;
             border: none; border-radius: 10px; padding: 10px 8px;
             font-size: 13px; cursor: pointer; 
-            /* MELHORIA (CSS): Ajuste sutil na transição de clique */
             transition: background 0.2s, transform 0.1s;
             text-align: center;
         }
         .option-btn:hover { background: #e96f00; }
-        .option-btn:active { transform: scale(0.97); } /* Ajustado de 0.95 para 0.97 */
+        .option-btn:active { transform: scale(0.97); }
         .end-btn { background: #d32f2f; }
         .end-btn:hover { background: #b71c1c; }
-        .reset-btn { background: #007bff; } /* Adicionado para o botão Reset */
+        .reset-btn { background: #007bff; }
         .reset-btn:hover { background: #0069d9; }
         .input-section {
             flex-shrink: 0; background: #fff; border-top: 1px solid #eee;
@@ -81,7 +78,32 @@
         .fade-in { opacity: 0; animation: fadeIn 0.5s forwards; }
         @keyframes fadeIn { to { opacity: 1; } }
         a { color: #ff7b00; text-decoration: none; }
-        .user a { color: white; } /* Cor dos links dentro da bolha do usuário */
+        .user a { color: white; }
+
+        .whatsapp-block {
+            display: block;
+            background: #f7f7f7;
+            padding: 10px;
+            border-radius: 12px;
+            margin-top: 8px;
+        }
+        .whatsapp-block p {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #333;
+        }
+        .whatsapp-btn {
+            display: inline-block;
+            background: #25d366;
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .whatsapp-btn:hover { background: #1ebe5b; }
     </style>
 </head>
 <body>
@@ -114,7 +136,6 @@
         let hasSelectedOption = false;
 
         const allOptions = ['fotografia', 'design', 'video', 'web', 'redes'];
-        // REMOÇÃO DA MELHORIA: A lista de 'permanentOptions' foi removida para seguir a lógica original.
         let remainingOptions = [...allOptions];
 
         function addMessage(sender, text) {
@@ -125,7 +146,6 @@
             chatBody.scrollTop = chatBody.scrollHeight;
         }
         
-        // MELHORIA (UX/Lógica): Função para habilitar/desabilitar o input
         function toggleInput(state, placeholder = 'Digite uma mensagem...') {
             userInput.disabled = !state;
             sendButton.disabled = !state;
@@ -138,7 +158,6 @@
 
             let optionsHTML = '';
             
-            // Lógica original: Usa apenas remainingOptions
             if (remainingOptions.length > 0) {
                 optionsHTML += 'Escolha uma opção abaixo:';
                 optionsHTML += `<div class="options-message">`;
@@ -151,19 +170,15 @@
                         case 'web': icon = '💻'; break;
                         case 'redes': icon = '🌐'; break;
                     }
-                    // MELHORIA (A11Y): Adicionado aria-label no botão
                     optionsHTML += `<button class="option-btn" onclick="selectOption('${option}')" aria-label="Opção ${option}">${icon} ${option.charAt(0).toUpperCase() + option.slice(1)}</button>`;
                 });
 
-                // 🔸 Só mostra o botão Encerrar depois da primeira seleção
                 if (hasSelectedOption) {
-                    // MELHORIA (A11Y): Adicionado aria-label no botão
                     optionsHTML += `<button class="option-btn end-btn" onclick="endChat()" aria-label="Encerrar Conversa">Encerrar ChatBot</button>`;
                 }
 
                 optionsHTML += `</div>`;
             } else {
-                // Opções ao final do fluxo
                 optionsHTML += `
                     Todas as opções foram apresentadas.<br>O que deseja fazer agora?
                     <div class="options-message">
@@ -180,7 +195,6 @@
         }
 
         function botTyping(text, delayPerChar = 10, callback = null) {
-            // MELHORIA (UX): Desabilita input enquanto digita
             toggleInput(false);
             
             const typing = document.createElement('div');
@@ -193,7 +207,6 @@
                 typing.remove();
                 addMessage('bot', text);
                 
-                // MELHORIA (UX): Habilita input após digitar
                 if (chatActive && userName) toggleInput(true, 'Digite uma mensagem...');
                 else if (chatActive) toggleInput(true, 'Digite seu nome...');
 
@@ -203,13 +216,12 @@
 
         function sendMessage() {
             const text = userInput.value.trim();
-            if (text === '' || !chatActive || userInput.disabled) return; // Verifica se o input está desabilitado
+            if (text === '' || !chatActive || userInput.disabled) return;
 
             if (!userName) {
                 userName = text;
                 addMessage('user', userName);
                 userInput.value = '';
-                // MELHORIA (UX): Altera o placeholder após obter o nome
                 userInput.placeholder = 'Digite uma mensagem...'; 
                 botTyping(`Seja bem-vindo(a), ${userName}! Estou aqui para apresentar meus serviços.`, 10, () => {
                     addOptionsMessage();
@@ -220,42 +232,60 @@
             addMessage('user', text);
             userInput.value = '';
             
-            // MELHORIA (Lógica): Resposta padrão para texto livre
             botTyping(`Para demais dúvidas, ${userName}, entre em contato comigo via <a href="http://wa.me//5521965870535" target="_blank">WhatsApp</a>.`);
         }
 
         function selectOption(option) {
             if (!chatActive) return;
-            hasSelectedOption = true; // 🔹 marca que já escolheu algo
+            hasSelectedOption = true;
             addMessage('user', option.charAt(0).toUpperCase() + option.slice(1));
 
             let response = '';
             switch(option) {
                 case 'fotografia':
-                    response = `📸 Fotografia profissional: Realizo ensaios fotográficos para todos os estilos, valorizando sua imagem e momentos especiais. Mais detalhes no <a href="https://halanmoises.46graus.com/" target="_blank">site</a> ou fale comigo pelo <a href="http://wa.me//5521965870535" target="_blank">WhatsApp</a>.`;
+                    response = `📸 <b>Fotografia Profissional:</b><br>Uma foto registra momentos que poderão ser lembrados por muito tempo, sejam eles simples ou grandiosos. Meu objetivo é registrar de forma natural e responsável esses momentos. Tem algo em mente? Vamos conversar sobre! Confira alguns dos meus trabalhos no meu site <a href="https://halanmoises.46graus.com/" target="_blank">Halan Moisés Fotografia</a>.`;
                     break;
                 case 'design':
-                    response = `🎨 Design Digital: Criação de artes visuais, identidade visual e material promocional para empresas e projetos. Mais informações no <a href="https://halanmoises.46graus.com/" target="_blank">site</a> ou pelo <a href="http://wa.me//5521965870535" target="_blank">WhatsApp</a>.`;
+                    response = `🎨 <b>Design Gráfico:</b><br>Criação de artes gráficas para uso impresso ou digital. Me conte do que você precisa!`;
                     break;
                 case 'video':
-                    response = `🎬 Videomaker: Produção de vídeos institucionais, promocionais e criativos com qualidade profissional. Confira no <a href="https://halanmoises.46graus.com/" target="_blank">site</a> ou entre em contato pelo <a href="http://wa.me//5521965870535" target="_blank">WhatsApp</a>.`;
+                    response = `🎬 <b>Videomaker:</b><br>Produção e Edição de Vídeos com foco para postagem nas redes sociais. Precisa produzir um vídeo ou apenas editar um já existente? Entre em contato!`;
                     break;
                 case 'web':
-                    response = `💻 Desenvolvimento Web: Criação e manutenção de sites, landing pages e soluções digitais personalizadas. Saiba mais no <a href="https://halanmoises.46graus.com/" target="_blank">site</a> ou pelo <a href="http://wa.me//5521965870535" target="_blank">WhatsApp</a>.`;
+                    response = `💻 <b>Desenvolvimento Web:</b><br>Criação e manutenção de pequenos sites, landing pages, criação de chatbot e soluções digitais personalizadas. Me conte do que precisa!`;
                     break;
                 case 'redes':
-                    response = `🌐 Minhas Redes Sociais:<br>
+                    response = `🌐 <b>Minhas Redes Sociais:</b><br>
                                  <a href="https://www.instagram.com/halanmoisesfotografia" target="_blank">Instagram</a><br>
                                  <a href="https://www.tiktok.com/@halanmoises" target="_blank">TikTok</a><br>
-                                 <a href="http://wa.me//5521965870535" target="_blank">WhatsApp</a>`;
+                                 <a href="http://wa.me//5521965870535" target="_blank">WhatsApp</a><br>
+                                 <a href="https://halanmoises.46graus.com/" target="_blank">Site</a>`;
                     break;
             }
 
-            // Ação de remoção da opção selecionada (incluindo 'redes', como solicitado)
             remainingOptions = remainingOptions.filter(opt => opt !== option);
-            
 
-            botTyping(response, 10, () => addOptionsMessage());
+            botTyping(response, 10, () => {
+                // Adiciona bloco WhatsApp apenas para serviços específicos
+                if (['fotografia', 'design', 'video', 'web'].includes(option)) {
+                    const waBlock = document.createElement('div');
+                    waBlock.classList.add('message', 'bot', 'fade-in');
+                    const serviceLabel = option.charAt(0).toUpperCase() + option.slice(1);
+                    const waMessageText = `Olá, Halan! Meu nome é ${userName} e me interessei pelo serviço de ${serviceLabel}.`;
+                    const waLink = `https://wa.me/5521965870535?text=${encodeURIComponent(waMessageText)}`;
+
+                    waBlock.innerHTML = `
+                        <div class="whatsapp-block">
+                            <p>Se quiser, envie agora seu interesse diretamente pelo WhatsApp clicando abaixo 👇</p>
+                            <a href="${waLink}" target="_blank" class="whatsapp-btn">📩 Enviar interesse via WhatsApp</a>
+                        </div>
+                    `;
+                    chatBody.appendChild(waBlock);
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                }
+
+                setTimeout(() => addOptionsMessage(), 300);
+            });
         }
 
         function resetMenu() {
@@ -268,11 +298,9 @@
             if (!chatActive) return;
             addMessage('user', 'Encerrar ChatBot');
             chatActive = false;
-            // MELHORIA (UX): Desabilita input ao encerrar
             toggleInput(false, 'Chat encerrado. Recarregue a página para começar novamente.'); 
 
             botTyping(`O chat foi encerrado. Até logo, ${userName}! 👋`, 10, () => {
-                // Ação de resetar o estado (seu código original usava um setTimeout para simular o encerramento)
                 setTimeout(() => {
                     chatBody.innerHTML = '';
                     userName = '';
@@ -281,7 +309,6 @@
                     hasSelectedOption = false;
                     remainingOptions = [...allOptions];
                     addMessage('bot', 'Olá! 👋 Sou o assistente do Halan Moisés. Qual é o seu nome?');
-                    // MELHORIA (UX): Restaura o input para o estado inicial
                     toggleInput(true, 'Digite seu nome...'); 
                 }, 1500);
             });
@@ -291,9 +318,7 @@
             if (e.key === 'Enter') sendMessage();
         });
         
-        // MELHORIA (UX): Inicia o input habilitado e no modo de digitar o nome
         toggleInput(true, 'Digite seu nome...');
     </script>
 </body>
-
 </html>
