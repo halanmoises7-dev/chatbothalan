@@ -116,7 +116,7 @@
         <div class="input-section">
             <div class="input-bar">
                 <input type="text" id="userInput" placeholder="Digite seu nome..." aria-label="Campo de entrada de texto" />
-                <button class="send-btn" onclick="sendMessage()" aria-label="Enviar Mensagem">
+                <button class="send-btn" aria-label="Enviar Mensagem">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
                     </svg>
@@ -127,21 +127,27 @@
     </div>
 
     <script>
+    // IIFE (Immediately Invoked Function Expression) para encapsulamento
+    (function() {
+        // 1. Variáveis de Estado e Referências ao DOM (Agora Privadas)
         const chatBody = document.getElementById('chatBody');
         const userInput = document.getElementById('userInput');
         const sendButton = document.querySelector('.send-btn');
+        
         let userName = '';
         let chatActive = true;
-        let hasShownOptionsOnce = false;
         let hasSelectedOption = false;
 
         const allOptions = ['fotografia', 'design', 'video', 'web', 'redes'];
         let remainingOptions = [...allOptions];
 
+        // 2. Funções de Utilidade (Privadas)
+
+        // Função segura contra XSS: usa textContent
         function addMessage(sender, text) {
             const msg = document.createElement('div');
             msg.classList.add('message', sender, 'fade-in');
-            msg.innerHTML = text;
+            msg.textContent = text;
             chatBody.appendChild(msg);
             chatBody.scrollTop = chatBody.scrollHeight;
         }
@@ -150,6 +156,18 @@
             userInput.disabled = !state;
             sendButton.disabled = !state;
             userInput.placeholder = state ? placeholder : 'Aguarde a resposta do assistente...';
+        }
+
+        // Função auxiliar para respostas do bot que podem conter HTML (links)
+        function addBotResponse(text) {
+            const msg = document.createElement('div');
+            msg.classList.add('message', 'bot', 'fade-in');
+            
+            // Usamos innerHTML AQUI, pois o texto é controlado por nós (seguro)
+            msg.innerHTML = text; 
+            
+            chatBody.appendChild(msg);
+            chatBody.scrollTop = chatBody.scrollHeight;
         }
 
         function addOptionsMessage() {
@@ -170,11 +188,12 @@
                         case 'web': icon = '💻'; break;
                         case 'redes': icon = '🌐'; break;
                     }
-                    optionsHTML += `<button class="option-btn" onclick="selectOption('${option}')" aria-label="Opção ${option}">${icon} ${option.charAt(0).toUpperCase() + option.slice(1)}</button>`;
+                    // Adicionando data-attributes para event listeners
+                    optionsHTML += `<button class="option-btn" data-action="select" data-option="${option}" aria-label="Opção ${option}">${icon} ${option.charAt(0).toUpperCase() + option.slice(1)}</button>`;
                 });
 
                 if (hasSelectedOption) {
-                    optionsHTML += `<button class="option-btn end-btn" onclick="endChat()" aria-label="Encerrar Conversa">Encerrar ChatBot</button>`;
+                    optionsHTML += `<button class="option-btn end-btn" data-action="end" aria-label="Encerrar Conversa">Encerrar ChatBot</button>`;
                 }
 
                 optionsHTML += `</div>`;
@@ -182,8 +201,8 @@
                 optionsHTML += `
                     Todas as opções foram apresentadas.<br>O que deseja fazer agora?
                     <div class="options-message">
-                        <button class="option-btn reset-btn" onclick="resetMenu()">🔄 Voltar ao Menu</button>
-                        <button class="option-btn end-btn" onclick="endChat()">Encerrar ChatBot</button>
+                        <button class="option-btn reset-btn" data-action="reset">🔄 Voltar ao Menu</button>
+                        <button class="option-btn end-btn" data-action="end">Encerrar ChatBot</button>
                     </div>
                 `;
             }
@@ -191,7 +210,9 @@
             optionsContainer.innerHTML = optionsHTML;
             chatBody.appendChild(optionsContainer);
             chatBody.scrollTop = chatBody.scrollHeight;
-            hasShownOptionsOnce = true;
+            
+            // NOVO: Anexar event listeners aos botões recém-criados
+            attachOptionListeners();
         }
 
         function botTyping(text, delayPerChar = 10, callback = null) {
@@ -205,7 +226,7 @@
 
             setTimeout(() => {
                 typing.remove();
-                addMessage('bot', text);
+                addBotResponse(text); 
                 
                 if (chatActive && userName) toggleInput(true, 'Digite uma mensagem...');
                 else if (chatActive) toggleInput(true, 'Digite seu nome...');
@@ -213,6 +234,8 @@
                 if (callback) callback();
             }, text.length * delayPerChar);
         }
+
+        // 3. Lógica Principal do Chat (Privada)
 
         function sendMessage() {
             const text = userInput.value.trim();
@@ -237,40 +260,45 @@
 
         function selectOption(option) {
             if (!chatActive) return;
+
+            // Validação de segurança e boas práticas
+            if (!allOptions.includes(option)) return; 
+            
             hasSelectedOption = true;
             addMessage('user', option.charAt(0).toUpperCase() + option.slice(1));
 
             let response = '';
             switch(option) {
                 case 'fotografia':
-                    response = `📸 <b>Fotografia Profissional:</b><br>Uma foto registra momentos que poderão ser lembrados por muito tempo, sejam eles simples ou grandiosos. Meu objetivo é registrar de forma natural e responsável esses momentos. Tem algo em mente? Vamos conversar sobre! Confira alguns dos meus trabalhos no meu site <a href="https://halanmoises.46graus.com/" target="_blank">Halan Moisés Fotografia</a>.`;
+                    response = `📸 Fotografia profissional: Realizo ensaios fotográficos para todos os estilos, valorizando sua imagem e momentos especiais. Pode conferir alguns trabalhos no meu site <a href="https://halanmoises.46graus.com/" target="_blank">Halan Moisés Fotografia</a>.`;
                     break;
                 case 'design':
-                    response = `🎨 <b>Design Gráfico:</b><br>Criação de artes gráficas para uso impresso ou digital. Me conte do que você precisa!`;
+                    response = `🎨 Design Digital: Criação de artes visuais, identidade visual e material promocional para empresas e projetos.`;
                     break;
                 case 'video':
-                    response = `🎬 <b>Videomaker:</b><br>Produção e Edição de Vídeos com foco para postagem nas redes sociais. Precisa produzir um vídeo ou apenas editar um já existente? Entre em contato!`;
+                    response = `🎬 Videomaker: Produção de vídeos institucionais, promocionais e criativos com qualidade profissional.`;
                     break;
                 case 'web':
-                    response = `💻 <b>Desenvolvimento Web:</b><br>Criação e manutenção de pequenos sites, landing pages, criação de chatbot e soluções digitais personalizadas. Me conte do que precisa!`;
+                    response = `💻 Desenvolvimento Web: Criação e manutenção de sites, landing pages e soluções digitais personalizadas.`;
                     break;
                 case 'redes':
-                    response = `🌐 <b>Minhas Redes Sociais:</b><br>
-                                 <a href="https://www.instagram.com/halanmoisesfotografia" target="_blank">Instagram</a><br>
-                                 <a href="https://www.tiktok.com/@halanmoises" target="_blank">TikTok</a><br>
-                                 <a href="http://wa.me//5521965870535" target="_blank">WhatsApp</a><br>
-                                 <a href="https://halanmoises.46graus.com/" target="_blank">Site</a>`;
+                    response = `🌐 Minhas Redes Sociais:<br>
+                                <a href="https://www.instagram.com/halanmoisesfotografia" target="_blank">📸 Instagram</a><br>
+                                <a href="https://www.tiktok.com/@halanmoises" target="_blank">🎶 TikTok</a><br>
+                                <a href="http://wa.me//5521965870535" target="_blank">💬 WhatsApp</a><br>
+                                <a href="https://halanmoises.46graus.com/" target="_blank">💻 Site</a>`;
                     break;
             }
 
             remainingOptions = remainingOptions.filter(opt => opt !== option);
 
             botTyping(response, 10, () => {
-                // Adiciona bloco WhatsApp apenas para serviços específicos
+                // Adiciona bloco WhatsApp
                 if (['fotografia', 'design', 'video', 'web'].includes(option)) {
                     const waBlock = document.createElement('div');
                     waBlock.classList.add('message', 'bot', 'fade-in');
                     const serviceLabel = option.charAt(0).toUpperCase() + option.slice(1);
+                    
                     const waMessageText = `Olá, Halan! Meu nome é ${userName} e me interessei pelo serviço de ${serviceLabel}.`;
                     const waLink = `https://wa.me/5521965870535?text=${encodeURIComponent(waMessageText)}`;
 
@@ -289,6 +317,7 @@
         }
 
         function resetMenu() {
+            if (!chatActive) return;
             remainingOptions = [...allOptions];
             addMessage('user', '🔄 Voltar ao Menu');
             botTyping('As opções foram restauradas. Escolha uma delas abaixo:', 10, () => addOptionsMessage());
@@ -305,20 +334,49 @@
                     chatBody.innerHTML = '';
                     userName = '';
                     chatActive = true;
-                    hasShownOptionsOnce = false;
                     hasSelectedOption = false;
                     remainingOptions = [...allOptions];
-                    addMessage('bot', 'Olá! 👋 Sou o assistente do Halan Moisés. Qual é o seu nome?');
+                    addBotResponse('Olá! 👋 Sou o assistente do Halan Moisés. Qual é o seu nome?');
                     toggleInput(true, 'Digite seu nome...'); 
                 }, 1500);
             });
         }
 
+        // 4. Anexar Event Listeners (Conectando o HTML ao Módulo Privado)
+
+        function attachOptionListeners() {
+            // Usa Event Delegation no chatBody para capturar cliques nos botões de opção
+            const optionsContainer = chatBody.lastElementChild;
+            if (!optionsContainer) return;
+
+            optionsContainer.addEventListener('click', (e) => {
+                const target = e.target.closest('.option-btn');
+                if (!target) return;
+
+                const action = target.getAttribute('data-action');
+                const option = target.getAttribute('data-option');
+                
+                if (action === 'select' && option) {
+                    selectOption(option);
+                } else if (action === 'end') {
+                    endChat();
+                } else if (action === 'reset') {
+                    resetMenu();
+                }
+            });
+        }
+
+        // Anexar listeners ao INPUT e ao BOTÃO DE ENVIO no carregamento inicial
+        sendButton.addEventListener('click', sendMessage);
+        
         userInput.addEventListener('keypress', e => {
             if (e.key === 'Enter') sendMessage();
         });
-        
+
+        // 5. Inicialização (Setup Inicial)
         toggleInput(true, 'Digite seu nome...');
+
+    })(); // Fim da IIFE
     </script>
 </body>
 </html>
