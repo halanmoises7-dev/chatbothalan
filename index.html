@@ -6,6 +6,20 @@
     <title>Chat Interativo - Halan Moisés</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* --- Variáveis CSS (Adicionadas para melhor organização) --- */
+        :root {
+            --primary-color: #ff7b00;
+            --primary-color-hover: #e96f00;
+            --whatsapp-color: #25d366;
+            --whatsapp-color-hover: #1ebe5b;
+            --error-color: #d32f2f;
+            --reset-color: #007bff;
+            --reset-color-hover: #0069d9;
+            --restart-color: #4CAF50; /* Novo */
+            --restart-color-hover: #45a049; /* Novo */
+            --font-size-base: 15px;
+        }
+
         * { box-sizing: border-box; }
         html, body {
             margin: 0; padding: 0; height: 100%; overflow: hidden;
@@ -21,7 +35,7 @@
             display: flex; flex-direction: column; overflow: hidden;
         }
         .chat-header {
-            background: #ff7b00; color: white; padding: 15px;
+            background: var(--primary-color); color: white; padding: 15px;
             text-align: center; font-weight: 600; font-size: 18px;
         }
         .chat-body {
@@ -31,26 +45,43 @@
         }
         .message {
             max-width: 85%; padding: 10px 14px; border-radius: 18px;
-            line-height: 1.4; font-size: 15px; word-wrap: break-word;
+            line-height: 1.4; font-size: var(--font-size-base); word-wrap: break-word;
         }
         .bot { background: #f0f0f0; align-self: flex-start; border-bottom-left-radius: 0; }
-        .user { background: #ff7b00; color: white; align-self: flex-end; border-bottom-right-radius: 0; }
+        .user { background: var(--primary-color); color: white; align-self: flex-end; border-bottom-right-radius: 0; }
         .options-message {
             display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
         }
         .option-btn {
-            flex: 1 1 45%; background: #ff7b00; color: white;
+            flex: 1 1 45%; background: var(--primary-color); color: white;
             border: none; border-radius: 10px; padding: 10px 8px;
             font-size: 13px; cursor: pointer; 
             transition: background 0.2s, transform 0.1s;
             text-align: center;
         }
-        .option-btn:hover { background: #e96f00; }
+        .option-btn:hover { background: var(--primary-color-hover); }
         .option-btn:active { transform: scale(0.97); }
-        .end-btn { background: #d32f2f; }
+        .end-btn { background: var(--error-color); }
         .end-btn:hover { background: #b71c1c; }
-        .reset-btn { background: #007bff; }
-        .reset-btn:hover { background: #0069d9; }
+        .reset-btn { background: var(--reset-color); }
+        .reset-btn:hover { background: var(--reset-color-hover); }
+        
+        /* NOVO: Estilo para o botão de Reiniciar Completo */
+        .restart-btn {
+            background: var(--restart-color); 
+            color: white;
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .restart-btn:hover { background: var(--restart-color-hover); }
+
         .input-section {
             flex-shrink: 0; background: #fff; border-top: 1px solid #eee;
             display: flex; flex-direction: column; align-items: center; padding: 10px;
@@ -62,14 +93,20 @@
             flex: 1; padding: 10px 12px; border-radius: 12px;
             border: 1px solid #ddd; font-size: 14px; outline: none;
         }
+        /* Adicionando estilo para input desativado que faltava */
+        .input-bar input:disabled { background: #f9f9f9; color: #888; }
+        
         .send-btn {
-            margin-left: 8px; background: #ff7b00; border: none;
+            margin-left: 8px; background: var(--primary-color); border: none;
             color: white; border-radius: 12px; padding: 10px 14px;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: 0.2s;
         }
-        .send-btn:hover { background: #e96f00; }
+        .send-btn:hover { background: var(--primary-color-hover); }
         .send-btn:active { transform: scale(0.95); }
+        /* Adicionando estilo para botão desativado que faltava */
+        .send-btn:disabled { opacity: 0.5; cursor: default; }
+
         .send-btn svg { width: 18px; height: 18px; fill: white; }
         .footer {
             font-size: 12px; color: #888; margin-top: 6px; text-align: center;
@@ -77,7 +114,7 @@
         .typing { font-style: italic; color: #777; }
         .fade-in { opacity: 0; animation: fadeIn 0.5s forwards; }
         @keyframes fadeIn { to { opacity: 1; } }
-        a { color: #ff7b00; text-decoration: none; }
+        a { color: var(--primary-color); text-decoration: none; }
         .user a { color: white; }
 
         .whatsapp-block {
@@ -86,6 +123,7 @@
             padding: 10px;
             border-radius: 12px;
             margin-top: 8px;
+            text-align: center;
         }
         .whatsapp-block p {
             margin: 0 0 8px 0;
@@ -94,7 +132,7 @@
         }
         .whatsapp-btn {
             display: inline-block;
-            background: #25d366;
+            background: var(--whatsapp-color);
             color: #fff;
             border: none;
             padding: 8px 14px;
@@ -102,8 +140,9 @@
             font-weight: 600;
             cursor: pointer;
             text-decoration: none;
+            transition: background 0.2s;
         }
-        .whatsapp-btn:hover { background: #1ebe5b; }
+        .whatsapp-btn:hover { background: var(--whatsapp-color-hover); }
     </style>
 </head>
 <body>
@@ -129,11 +168,14 @@
     <script>
     // IIFE (Immediately Invoked Function Expression) para encapsulamento
     (function() {
-        // 1. Variáveis de Estado e Referências ao DOM (Agora Privadas)
+        // --- 1. Variáveis de Estado e Referências ao DOM ---
         const chatBody = document.getElementById('chatBody');
         const userInput = document.getElementById('userInput');
         const sendButton = document.querySelector('.send-btn');
         
+        // WhatsApp Number (Centralizado)
+        const WHATSAPP_NUMBER = '5521965870535'; 
+
         let userName = '';
         let chatActive = true;
         let hasSelectedOption = false;
@@ -141,9 +183,8 @@
         const allOptions = ['fotografia', 'design', 'video', 'web', 'redes'];
         let remainingOptions = [...allOptions];
 
-        // 2. Funções de Utilidade (Privadas)
+        // --- 2. Funções de Utilidade ---
 
-        // Função segura contra XSS: usa textContent
         function addMessage(sender, text) {
             const msg = document.createElement('div');
             msg.classList.add('message', sender, 'fade-in');
@@ -158,14 +199,10 @@
             userInput.placeholder = state ? placeholder : 'Aguarde a resposta do assistente...';
         }
 
-        // Função auxiliar para respostas do bot que podem conter HTML (links)
         function addBotResponse(text) {
             const msg = document.createElement('div');
             msg.classList.add('message', 'bot', 'fade-in');
-            
-            // Usamos innerHTML AQUI, pois o texto é controlado por nós (seguro)
             msg.innerHTML = text; 
-            
             chatBody.appendChild(msg);
             chatBody.scrollTop = chatBody.scrollHeight;
         }
@@ -188,7 +225,6 @@
                         case 'web': icon = '💻'; break;
                         case 'redes': icon = '🌐'; break;
                     }
-                    // Adicionando data-attributes para event listeners
                     optionsHTML += `<button class="option-btn" data-action="select" data-option="${option}" aria-label="Opção ${option}">${icon} ${option.charAt(0).toUpperCase() + option.slice(1)}</button>`;
                 });
 
@@ -210,9 +246,6 @@
             optionsContainer.innerHTML = optionsHTML;
             chatBody.appendChild(optionsContainer);
             chatBody.scrollTop = chatBody.scrollHeight;
-            
-            // NOVO: Anexar event listeners aos botões recém-criados
-            attachOptionListeners();
         }
 
         function botTyping(text, delayPerChar = 10, callback = null) {
@@ -224,6 +257,9 @@
             chatBody.appendChild(typing);
             chatBody.scrollTop = chatBody.scrollHeight;
 
+            const minDelay = 700;
+            const typingTime = Math.max(text.length * delayPerChar, minDelay);
+
             setTimeout(() => {
                 typing.remove();
                 addBotResponse(text); 
@@ -232,16 +268,25 @@
                 else if (chatActive) toggleInput(true, 'Digite seu nome...');
 
                 if (callback) callback();
-            }, text.length * delayPerChar);
+            }, typingTime);
         }
 
-        // 3. Lógica Principal do Chat (Privada)
+        // --- 3. Lógica Principal do Chat ---
 
         function sendMessage() {
             const text = userInput.value.trim();
             if (text === '' || !chatActive || userInput.disabled) return;
 
             if (!userName) {
+                // Adicionando validação de nome (mínimo 2 caracteres)
+                if (text.length < 2) {
+                    botTyping('Por favor, digite um nome válido e com no mínimo 2 caracteres.', 10, () => {
+                        toggleInput(true, 'Digite seu nome...');
+                    });
+                    userInput.value = '';
+                    return;
+                }
+
                 userName = text;
                 addMessage('user', userName);
                 userInput.value = '';
@@ -255,38 +300,40 @@
             addMessage('user', text);
             userInput.value = '';
             
-            botTyping(`Para demais dúvidas, ${userName}, entre em contato comigo via <a href="http://wa.me//5521965870535" target="_blank">WhatsApp</a>.`);
+            botTyping(`Para demais dúvidas, ${userName}, entre em contato comigo via <a href="http://wa.me//${WHATSAPP_NUMBER}" target="_blank">WhatsApp</a>.`, 10, () => {
+                addOptionsMessage();
+            });
         }
 
         function selectOption(option) {
             if (!chatActive) return;
-
-            // Validação de segurança e boas práticas
             if (!allOptions.includes(option)) return; 
             
             hasSelectedOption = true;
             addMessage('user', option.charAt(0).toUpperCase() + option.slice(1));
 
             let response = '';
+            const WHATSAPP_LINK = `http://wa.me//${WHATSAPP_NUMBER}`;
+            
             switch(option) {
                 case 'fotografia':
-                    response = `📸 Fotografia profissional: Realizo ensaios fotográficos para todos os estilos, valorizando sua imagem e momentos especiais. Pode conferir alguns trabalhos no meu site <a href="https://halanmoises.46graus.com/" target="_blank">Halan Moisés Fotografia</a>.`;
+                    response = `📸 <strong>Fotografia profissional</strong>: Realizo ensaios fotográficos para todos os estilos, valorizando sua imagem e momentos especiais. Pode conferir alguns trabalhos no meu site <a href="https://halanmoises.46graus.com/" target="_blank">Halan Moisés Fotografia</a>.`;
                     break;
                 case 'design':
-                    response = `🎨 Design Digital: Criação de artes visuais, identidade visual e material promocional para empresas e projetos.`;
+                    response = `🎨 <strong>Design Digital</strong>: Criação de artes visuais, identidade visual e material promocional para empresas e projetos.`;
                     break;
                 case 'video':
-                    response = `🎬 Videomaker: Produção de vídeos institucionais, promocionais e criativos com qualidade profissional.`;
+                    response = `🎬 <strong>Videomaker</strong>: Produção de vídeos institucionais, promocionais e criativos com qualidade profissional.`;
                     break;
                 case 'web':
-                    response = `💻 Desenvolvimento Web: Criação e manutenção de sites, landing pages e soluções digitais personalizadas.`;
+                    response = `💻 <strong>Desenvolvimento Web</strong>: Criação e manutenção de sites, landing pages e soluções digitais personalizadas.`;
                     break;
                 case 'redes':
-                    response = `🌐 Minhas Redes Sociais:<br>
-                                <a href="https://www.instagram.com/halanmoisesfotografia" target="_blank">📸 Instagram</a><br>
-                                <a href="https://www.tiktok.com/@halanmoises" target="_blank">🎶 TikTok</a><br>
-                                <a href="http://wa.me//5521965870535" target="_blank">💬 WhatsApp</a><br>
-                                <a href="https://halanmoises.46graus.com/" target="_blank">💻 Site</a>`;
+                    response = `🌐 <strong>Minhas Redes Sociais</strong>:<br>
+                                     <a href="https://www.instagram.com/halanmoisesfotografia" target="_blank">📸 Instagram</a><br>
+                                     <a href="https://www.tiktok.com/@halanmoises" target="_blank">🎶 TikTok</a><br>
+                                     <a href="${WHATSAPP_LINK}" target="_blank">💬 WhatsApp</a><br>
+                                     <a href="https://halanmoises.46graus.com/" target="_blank">💻 Site</a>`;
                     break;
             }
 
@@ -300,11 +347,11 @@
                     const serviceLabel = option.charAt(0).toUpperCase() + option.slice(1);
                     
                     const waMessageText = `Olá, Halan! Meu nome é ${userName} e me interessei pelo serviço de ${serviceLabel}.`;
-                    const waLink = `https://wa.me/5521965870535?text=${encodeURIComponent(waMessageText)}`;
+                    const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waMessageText)}`;
 
                     waBlock.innerHTML = `
                         <div class="whatsapp-block">
-                            <p>Se quiser, envie agora seu interesse diretamente pelo WhatsApp clicando abaixo 👇</p>
+                            <p>Se quiser, envie agora seu interesse por <strong>${serviceLabel}</strong> diretamente pelo WhatsApp clicando abaixo 👇</p>
                             <a href="${waLink}" target="_blank" class="whatsapp-btn">📩 Enviar interesse via WhatsApp</a>
                         </div>
                     `;
@@ -323,48 +370,66 @@
             botTyping('As opções foram restauradas. Escolha uma delas abaixo:', 10, () => addOptionsMessage());
         }
 
+        // --- NOVO: Função para reiniciar o chat completamente ---
+        function fullReset() {
+            // 1. Limpa o histórico visual
+            chatBody.innerHTML = '';
+            
+            // 2. Reseta todas as variáveis de estado
+            userName = '';
+            chatActive = true;
+            hasSelectedOption = false;
+            remainingOptions = [...allOptions];
+            
+            // 3. Inicia a conversa
+            addBotResponse('Olá! 👋 Sou o assistente do Halan Moisés. Qual é o seu nome?');
+            toggleInput(true, 'Digite seu nome...');
+        }
+
+
+        // --- Função endChat() Atualizada ---
         function endChat() {
             if (!chatActive) return;
             addMessage('user', 'Encerrar ChatBot');
             chatActive = false;
-            toggleInput(false, 'Chat encerrado. Recarregue a página para começar novamente.'); 
+            
+            // Desativa a entrada e informa que o chat foi encerrado
+            toggleInput(false, 'Chat encerrado.'); 
 
             botTyping(`O chat foi encerrado. Até logo, ${userName}! 👋`, 10, () => {
-                setTimeout(() => {
-                    chatBody.innerHTML = '';
-                    userName = '';
-                    chatActive = true;
-                    hasSelectedOption = false;
-                    remainingOptions = [...allOptions];
-                    addBotResponse('Olá! 👋 Sou o assistente do Halan Moisés. Qual é o seu nome?');
-                    toggleInput(true, 'Digite seu nome...'); 
-                }, 1500);
-            });
-        }
-
-        // 4. Anexar Event Listeners (Conectando o HTML ao Módulo Privado)
-
-        function attachOptionListeners() {
-            // Usa Event Delegation no chatBody para capturar cliques nos botões de opção
-            const optionsContainer = chatBody.lastElementChild;
-            if (!optionsContainer) return;
-
-            optionsContainer.addEventListener('click', (e) => {
-                const target = e.target.closest('.option-btn');
-                if (!target) return;
-
-                const action = target.getAttribute('data-action');
-                const option = target.getAttribute('data-option');
+                // Adiciona o bloco com o botão de reiniciar
+                const restartBlock = document.createElement('div');
+                restartBlock.classList.add('message', 'bot', 'fade-in');
                 
-                if (action === 'select' && option) {
-                    selectOption(option);
-                } else if (action === 'end') {
-                    endChat();
-                } else if (action === 'reset') {
-                    resetMenu();
-                }
+                restartBlock.innerHTML = `
+                    <p>Se precisar de algo mais, clique no botão abaixo para começar uma nova conversa.</p>
+                    <button class="restart-btn" data-action="full-reset">👋 Reiniciar Conversa</button>
+                `;
+                chatBody.appendChild(restartBlock);
+                chatBody.scrollTop = chatBody.scrollHeight;
             });
         }
+
+        // --- 4. Anexar Event Listeners (Delegation) ---
+
+        // Listener principal para botões de opção e reinício
+        chatBody.addEventListener('click', (e) => {
+            const target = e.target.closest('.option-btn, .restart-btn');
+            if (!target) return;
+
+            const action = target.getAttribute('data-action');
+            const option = target.getAttribute('data-option');
+            
+            if (action === 'select' && option) {
+                selectOption(option);
+            } else if (action === 'end') {
+                endChat();
+            } else if (action === 'reset') {
+                resetMenu();
+            } else if (action === 'full-reset') { // NOVO
+                fullReset();
+            }
+        });
 
         // Anexar listeners ao INPUT e ao BOTÃO DE ENVIO no carregamento inicial
         sendButton.addEventListener('click', sendMessage);
@@ -376,7 +441,7 @@
         // 5. Inicialização (Setup Inicial)
         toggleInput(true, 'Digite seu nome...');
 
-    })(); // Fim da IIFE
+    })(); 
     </script>
 </body>
 </html>
